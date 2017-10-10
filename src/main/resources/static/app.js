@@ -8,6 +8,21 @@ this.x = x;
 
 var stompClient = null;
     var newConection;
+    
+        var draw=function (lista){
+            var canvas = document.getElementById("canvas");
+            var c = canvas.getContext("2d");
+            c.beginPath();
+            c.clearRect(0, 0, canvas.width, canvas.height);
+            for (var i = 0; i < lista.length - 1; i++) {
+                first = lista[i];
+                last = lista[i + 1];
+                c.moveTo(first.x, first.y);
+                c.lineTo(last.x, last.y);
+            }
+                       
+            c.stroke();
+        };
 
         var addPointToCanvas = function (point) {
         var canvas = document.getElementById("canvas");
@@ -30,16 +45,15 @@ var stompClient = null;
                 stompClient = Stomp.over(socket);
                 //subscribe to /topic/TOPICXX when connections succeed
                 stompClient.connect({}, function (frame) {
-                console.log('Connected: ' + frame);
-                        stompClient.subscribe('/topic/newpoint.'+newConection , function (eventbody) {
-                            var theObject = JSON.parse(eventbody.body);
-                            
-                            //alert("Event body: "+ eventbody);
-                            //alert("RECEIVED POINTS: X:" + theObject.x+ "y: " + theObject.y);
-                            addPointToCanvas(theObject);
-                        });
+                    console.log('Connected: ' + frame);
+                    stompClient.subscribe('/topic/newpolygon.'+newConection , function (eventbody) {
+                        var theObject = JSON.parse(eventbody.body);
+                        //alert("Event body: "+ eventbody);
+                        //alert("RECEIVED POINTS: X:" + theObject.x+ "y: " + theObject.y);
                         
-                        
+                        //DRAW POLYGON
+                        draw(theObject);
+                    });    
                 });
         };
         
@@ -48,9 +62,6 @@ var stompClient = null;
 
             init: function () {
                 var can = document.getElementById("canvas");
-                
-                //websocket connection
-                //connectAndSubscribe();
                 
                  //if PointerEvent is suppported by the browser:
 
@@ -73,7 +84,7 @@ var stompClient = null;
                         console.info("publishing point at " + pt);
                         addPointToCanvas(pt);
                         //publicar el evento
-                        stompClient.send("/topic/newpoint."+newConection, {}, JSON.stringify(pt));
+                        stompClient.send("/app/newpoint."+newConection, {}, JSON.stringify(pt));
                 },
             disconnect: function () {
                 if (stompClient !== null) {
