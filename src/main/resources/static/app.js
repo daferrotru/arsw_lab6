@@ -7,6 +7,8 @@ this.x = x;
 }
 
 var stompClient = null;
+    var newConection;
+
         var addPointToCanvas = function (point) {
         var canvas = document.getElementById("canvas");
                 var ctx = canvas.getContext("2d");
@@ -29,7 +31,7 @@ var stompClient = null;
                 //subscribe to /topic/TOPICXX when connections succeed
                 stompClient.connect({}, function (frame) {
                 console.log('Connected: ' + frame);
-                        stompClient.subscribe('/topic/newpoint' , function (eventbody) {
+                        stompClient.subscribe('/topic/newpoint.'+newConection , function (eventbody) {
                             var theObject = JSON.parse(eventbody.body);
                             
                             //alert("Event body: "+ eventbody);
@@ -48,7 +50,7 @@ var stompClient = null;
                 var can = document.getElementById("canvas");
                 
                 //websocket connection
-                connectAndSubscribe();
+                //connectAndSubscribe();
                 
                  //if PointerEvent is suppported by the browser:
 
@@ -71,7 +73,7 @@ var stompClient = null;
                         console.info("publishing point at " + pt);
                         addPointToCanvas(pt);
                         //publicar el evento
-                        stompClient.send("/topic/newpoint", {}, JSON.stringify(pt));
+                        stompClient.send("/topic/newpoint."+newConection, {}, JSON.stringify(pt));
                 },
             disconnect: function () {
                 if (stompClient !== null) {
@@ -79,6 +81,17 @@ var stompClient = null;
                 }
                 setConnected(false);
                 console.log("Disconnected");
+            },
+            
+            newConection:function (conection){
+                var canvas = document.getElementById("canvas");
+                var c = canvas.getContext("2d");
+                c.clearRect(0, 0, canvas.width, canvas.height);
+                newConection=conection;
+                document.getElementById("cc").innerHTML = "Current Connection: " + newConection;
+                console.log("Conected to: "+newConection);
+                connectAndSubscribe();
+                
             }
         };
         })();
